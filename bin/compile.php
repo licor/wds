@@ -4,7 +4,7 @@ ini_set("phar.readonly", 'Off');
 $cwd = getcwd();
 chdir($cwd);
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/../src/bootstrap.php';
 
 use Wds\Compiler;
 
