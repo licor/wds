@@ -11,7 +11,9 @@ class Compiler
 		if (file_exists($pharFile))
 			unlink($pharFile);
 			
-		$phar = new \Phar($pharFile, 0, 'wds.phar');
+        $phar = new \Phar($pharFile, 0, 'wds.phar');
+        
+        $phar->startBuffering();
 
 		$finderSort = function ($a, $b) {
             return strcmp(strtr($a->getRealPath(), '\\', '/'), strtr($b->getRealPath(), '\\', '/'));
@@ -28,25 +30,47 @@ class Compiler
 
         foreach ($finder as $file) {
             $this->addFile($phar, $file);
-		}
+        }
+        
+        $finder = new Finder();
+        $finder->files()
+            ->ignoreVCS(true)
+            ->name('*.php')
+            ->name('LICENSE')
+            ->exclude('Tests')
+            ->exclude('tests')
+            ->exclude('docs')
+            ->exclude('*.json')
+            ->in(__DIR__.'/../vendor/symfony/')
+            ->in(__DIR__.'/../vendor/psr/')
+            ->in(__DIR__.'/../vendor/composer/')
+            ->sort($finderSort)
+        ;
+
+        foreach ($finder as $file) {
+            $this->addFile($phar, $file);
+        }        
 
 		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/autoload.php'));
-        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_namespaces.php'));
-        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_psr4.php'));
-        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_classmap.php'));
-        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_files.php'));
-        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_real.php'));
-		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_static.php'));
+        // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_namespaces.php'));
+        // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_psr4.php'));
+        // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_classmap.php'));
+        // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_files.php'));
+        // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_real.php'));
+		// $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_static.php'));
+        // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/ClassLoader.php'));
 
 		$this->addBin($phar);
 
-		$phar->setStub($this->getStub());
+        $phar->setStub($this->getStub());
+        
+        $phar->stopBuffering();
 
 	}
 
     private function getRelativeFilePath($file) {
         $realPath = $file->getRealPath();
-        $pathPrefix = dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR;
+        $pathPrefix = (dirname(__DIR__)).DIRECTORY_SEPARATOR;
         $pos = strpos($realPath, $pathPrefix);
         $relativePath = ($pos !== false) ? substr_replace($realPath, '', $pos, strlen($pathPrefix)) : $realPath;
         return strtr($relativePath, '\\', '/');
