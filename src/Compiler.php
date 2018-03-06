@@ -12,6 +12,8 @@ class Compiler
 			unlink($pharFile);
 			
         $phar = new \Phar($pharFile, 0, 'wds.phar');
+
+        $phar->setSignatureAlgorithm(\Phar::SHA1);
         
         $phar->startBuffering();
 
@@ -22,7 +24,7 @@ class Compiler
 		$finder = new Finder();
         $finder->files()
             ->ignoreVCS(true)
-			->name('*.php')
+            ->name('*.php')
 			->notName('Compiler.php')
 			->in(__DIR__)
             ->sort($finderSort)
@@ -42,16 +44,17 @@ class Compiler
             ->exclude('docs')
             ->exclude('*.json')
             ->in(__DIR__.'/../vendor/symfony/')
-            ->in(__DIR__.'/../vendor/psr/')
+            // ->in(__DIR__.'/../vendor/psr/')
             ->in(__DIR__.'/../vendor/composer/')
             ->sort($finderSort)
         ;
 
         foreach ($finder as $file) {
             $this->addFile($phar, $file);
-        }        
+        }
 
-		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/autoload.php'));
+
+        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/autoload.php'));
         // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_namespaces.php'));
         // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_psr4.php'));
         // $this->addFile($phar, new \SplFileInfo(__DIR__.'/../vendor/composer/autoload_classmap.php'));
