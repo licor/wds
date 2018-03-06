@@ -1,6 +1,6 @@
 {
     "require": {
-        "symfony/console": "^3.4",
+        "symfony/console": "3.0",
         "symfony/finder": "^3.4"
     },
     "autoload": {
